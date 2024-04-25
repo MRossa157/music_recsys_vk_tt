@@ -2,7 +2,8 @@ import os
 import zipfile
 
 import py7zr
-from tqdm import tqdm  # Импортируем tqdm для отображения прогресса
+from sklearn.metrics import ndcg_score
+from tqdm import tqdm  # Для отображения прогресса
 
 
 def _zip_extract(path, extract_to):
@@ -32,3 +33,7 @@ def extract_all(archive_path):
     # Начинаем рекурсивное извлечение с основного архива
     recursive_extract(archive_path, directory)
     print("Все архивы успешно извлечены.")
+
+
+def ndcg_20_score(y_true, y_score):
+    return ndcg_score(y_true, y_score, k=20)
