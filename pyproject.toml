@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "!music-recsys-vk-tt"
+version = "0.1.0"
+description = ""
+authors = ["MRossa <maxim.rossa@mail.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "^1.26.4"
+pandas = "^2.2.2"
+seaborn = "^0.13.2"
+matplotlib = "^3.8.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
