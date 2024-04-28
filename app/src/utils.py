@@ -2,7 +2,6 @@ import os
 import zipfile
 
 import py7zr
-from sklearn.metrics import ndcg_score
 from tqdm import tqdm  # Для отображения прогресса
 
 
@@ -27,13 +26,7 @@ def recursive_extract(zip_path, extract_to):
         _7z_extract(zip_path, extract_to)
 
 def extract_all(archive_path):
-    # Определяем папку, в которой находится основной архив
     directory = os.path.dirname(archive_path)
 
-    # Начинаем рекурсивное извлечение с основного архива
     recursive_extract(archive_path, directory)
     print("Все архивы успешно извлечены.")
-
-
-def ndcg_20_score(y_true, y_score):
-    return ndcg_score(y_true, y_score, k=20)
