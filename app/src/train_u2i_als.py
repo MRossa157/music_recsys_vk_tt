@@ -24,10 +24,14 @@ if __name__ == "__main__":
     # Считывание данных
     logging.info('Считываем данные')
     df_train = pd.read_csv(rf'{dataset_path}\train.csv')
+    df_test = pd.read_csv(rf'{dataset_path}\test.csv')
+    df_songs = pd.read_csv(rf'{dataset_path}\songs.csv')
+    df_members = pd.read_csv(rf'{dataset_path}\members.csv')
 
     # мапинг msno и song_id на нормальные индексы
     logging.info("Добавляем колоки 'user_id' и 'item_id'")
-    ALL_USERS, ALL_ITEMS = get_users_and_items()
+    ALL_USERS, ALL_ITEMS = get_users_and_items([df_train, df_test, df_songs, df_members])
+    del df_test, df_songs, df_members
 
     user_ids = dict(list(enumerate(ALL_USERS)))
     item_ids = dict(list(enumerate(ALL_ITEMS)))

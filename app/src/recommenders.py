@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import List, Tuple
 
+import numpy as np
 import torch
 from implicit.cpu.als import AlternatingLeastSquares
 from pandas import DataFrame
@@ -86,21 +87,13 @@ class ALSRecommender(BaseRecommender):
 
         df_user = df[df['user_id'] == user_id]
 
-         # Если у пользователя нет взаимодействий, возвращаем пустую CSR матрицу
-        if df_user.empty:
-            return coo_matrix((0, 0)).tocsr()
+        row = np.zeros(df_user.shape[0], dtype=int)  # Т.к. мы собираем для 1 пользователя
+        col = df_user['item_id'].values
+        data = np.ones(df_user.shape[0])
 
-        df_user['item_id'] = df_user['item_id'].astype('category')
-
-        row = [0] * len(df_user)  # Так как у нас один пользователь, все элементы будут в одной строке
-        col = df_user['item_id'].cat.codes  # Индексы для столбцов
-        data = [1] * len(df_user)
-
-        num_items = df_user['item_id'].cat.categories.size
-
-        matrix_coo = coo_matrix((data, (row, col)), shape=(1, num_items))
-
-        return matrix_coo.tocsr()
+        # Будем считать, что ALL_ITEMS содержит все возможные элементы, независимо от действий пользователя.
+        coo = coo_matrix((data, (row, col)), shape=(1, len(self.item_ids)))
+        return coo.tocsr()
 
     def similar_items(self, itemid) -> tuple:
         return self.model.similar_items(itemid)
