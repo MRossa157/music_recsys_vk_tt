@@ -15,12 +15,15 @@ cp /path/to/packed/data/*.zip ./app/dataset
 cd app/src
 ```
 1. Разархивировать архив(ы)
+
 ```python3 exctract_zip.py```
 
 2. Обучить user-2-item модель:
+
 ```python3 train_u2i_als.py```
 
 3. Запустить main.py и проверить выдачу рекоменадий:
+
 ```python3 main.py```
 
 
