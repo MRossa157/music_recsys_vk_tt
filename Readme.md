@@ -29,6 +29,6 @@ cd app/src
 
 
 # В планах:
-- [X] Добавить оценку метрики NDCG для NCF
-- [ ] Добавить NCFRecommender
+- [X] Добавить оценку метрики NDCG@20 для NCF
+- [X] Добавить NCFRecommender
 - [ ] Сделать makefile
