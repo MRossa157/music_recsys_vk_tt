@@ -1,25 +1,15 @@
 from abc import ABC
 
+import torch
 from implicit.cpu.als import AlternatingLeastSquares
 from pandas import DataFrame
 from scipy.sparse import coo_matrix
 
+from app.src.train_ncf import NCF
+
 
 class BaseRecommender(ABC):
-    def __init__(self, model_path: str, debug_mode: bool = False) -> None:
-        self.debug_mode = debug_mode
-
-    def get_recommendation(self) -> str:
-        raise NotImplementedError
-
-    def __print_if_debug(self, data):
-        if self.debug_mode:
-            print(data)
-
-class ALSRecommender(BaseRecommender):
-    def __init__(self, model_path: str, user_ids: list, item_ids: list, debug_mode: bool = False) -> None:
-        super().__init__(model_path, debug_mode)
-
+    def __init__(self, model_path: str, user_ids: list, item_ids: list, ) -> None:
         self.user_ids = user_ids
         self.item_ids = item_ids
 
@@ -29,17 +19,29 @@ class ALSRecommender(BaseRecommender):
         self.user_map = {u: uidx for uidx, u in user_ids_dict.items()}
         self.item_map = {i: iidx for iidx, i in item_ids_dict.items()}
 
-        if not model_path.endswith(".npz"):
-            raise ValueError("Путь к модели должен содержать файл с расширением .npz")
-
-        self.model = AlternatingLeastSquares.load(model_path)
-
+    def get_recommendation(self) -> str:
+        raise NotImplementedError
 
     def msno_to_userid(self, msno:str):
         return self.user_map.get(msno, None)
 
     def songid_to_item_id(self, songid):
         return self.item_map.get(songid, None)
+
+
+    def __print_if_debug(self, data):
+        if self.debug_mode:
+            print(data)
+
+class ALSRecommender(BaseRecommender):
+    def __init__(self, model_path: str, user_ids: list, item_ids: list) -> None:
+        """
+        model_path (str) = Path to .npz checkpoint file from lib 'implicit' ALS model
+        """
+        super().__init__(model_path, user_ids, item_ids)
+        if not model_path.endswith(".npz"):
+            raise ValueError("Путь к модели должен содержать файл с расширением .npz")
+        self.model = AlternatingLeastSquares.load(model_path)
 
     def get_recommendation(self, userid, user_items, N=10, filter_already_liked_items=True, filter_items=None, recalculate_user=False, items=None) -> tuple:
         '''
@@ -59,7 +61,7 @@ class ALSRecommender(BaseRecommender):
         items (array_like, optional) – Array of extra item ids. When set this will only rank the items in this array instead of ranking every item the model was fit for. This parameter cannot be used with filter_items
 
         Returns
-        Tuple of (itemids, scores) arrays. When calculating for a single user these array will be 1-dimensional with N items. When passed an array of userids, these will be 2-dimensional arrays with a row for each user.
+        Tuple of (itemids, scores) arrays. For a single user these array will be 1-dimensional with N items.
         '''
         return self.model.recommend(userid, user_items, N=N, filter_already_liked_items=filter_already_liked_items,
                                    filter_items=filter_items, recalculate_user=recalculate_user, items=items)
@@ -109,3 +111,34 @@ class ALSRecommender(BaseRecommender):
 
     def similar_users(self, userid) -> tuple:
         return self.model.similar_users(userid)
+
+
+class NCFRecommender(BaseRecommender):
+    def __init__(self, model_path: str, user_ids: list, item_ids: list, ratings: DataFrame) -> None:
+        """
+        model_path (str) = Path to .ckpt checkpoint file from PyTorch Lightning
+        user_ids (List[str|int]) = List of all users
+        item_ids (List[str|int]) = List of all items
+        ratings (Pandas Dataframe) = Dataframe with collumns: 'user_id', 'item_id', 'target'
+        """
+        super().__init__(model_path, user_ids, item_ids)
+        if not model_path.endswith(".ckpt"):
+            raise ValueError("Путь к модели должен содержать файл с расширением .ckpt")
+
+        self.model = NCF.load_from_checkpoint(model_path, num_users=len(self.user_ids), num_items=len(self.item_ids), ratings=ratings)
+
+    def get_recommendation(self, user_id: int, items: list) -> str:
+        """
+        user_id (int) = User ID
+        items_targets List(int) = List of item_ids
+
+        Returns
+        Tuple of (itemids, scores) arrays. For a single user these array will be 1-dimensional with N items.
+        """
+        # Прогнозы модели для данного пользователя
+        items_tensor = torch.tensor(items, dtype=torch.long)
+        user_tensor = torch.tensor([user_id] * len(items), dtype=torch.long)
+        with torch.no_grad():
+            predictions = self.model(user_tensor, items_tensor).flatten().numpy()
+
+        return tuple(items_tensor.flatten().numpy(), predictions)
