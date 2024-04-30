@@ -30,3 +30,14 @@ def extract_all(archive_path):
 
     recursive_extract(archive_path, directory)
     print("Все архивы успешно извлечены.")
+
+
+if __name__ == "__main__":
+    dataset_path = r"app\dataset"
+
+    zip_files = [f for f in os.listdir(dataset_path) if f.endswith('.zip') or f.endswith('.7z')]
+    if len(zip_files) == 1:
+        zip_path = os.path.join(dataset_path, zip_files[0])
+        extract_all(zip_path)
+    else:
+        print('Разархивация не требуется')
