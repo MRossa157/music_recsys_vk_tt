@@ -1,5 +1,3 @@
-import pandas as pd
-
 from app.src.recommenders import NCFRecommender
 from app.src.utils import get_train_data_ncf
 

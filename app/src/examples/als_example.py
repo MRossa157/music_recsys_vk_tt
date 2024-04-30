@@ -5,15 +5,15 @@ from app.src.utils import get_users_and_items
 
 if __name__ == '__main__':
     # Получение списка всех пользователей и музыки
-    df_train = pd.read_csv(r'app/dataset/train.csv')
-    df_test = pd.read_csv(r'app/dataset/test.csv')
-    df_songs = pd.read_csv(r'app/dataset/songs.csv')
-    df_members = pd.read_csv(r'app/dataset/members.csv')
+    df_train = pd.read_csv(r'dataset/train.csv')
+    df_test = pd.read_csv(r'dataset/test.csv')
+    df_songs = pd.read_csv(r'dataset/songs.csv')
+    df_members = pd.read_csv(r'dataset/members.csv')
 
     ALL_USERS, ALL_ITEMS = get_users_and_items([df_train, df_test, df_songs, df_members])
 
     # Загрузка модели
-    model_path = r"app/src/weights/als.npz"
+    model_path = r"src/weights/als.npz"
     model = ALSRecommender(model_path, user_ids=ALL_USERS, item_ids=ALL_ITEMS)
 
     # Выбор произвольного пользователя из трейн датасета

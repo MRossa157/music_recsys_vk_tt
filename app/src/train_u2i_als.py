@@ -19,7 +19,7 @@ def train(coo_train, factors=200, iterations=15, regularization=0.01, show_progr
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    dataset_path = r"dataset"
+    dataset_path = r"app/dataset"
     # Считывание данных
     logging.info('Считываем данные')
     df_train = pd.read_csv(rf'{dataset_path}\train.csv')

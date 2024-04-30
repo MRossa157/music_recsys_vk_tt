@@ -4,10 +4,10 @@ from typing import List, Tuple
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+from config import NCF_EPOCHES
 from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
-
-from app.src.utils import get_train_data_ncf
+from utils import get_train_data_ncf
 
 
 class MusicTrainDataset(Dataset):
@@ -140,4 +140,4 @@ if __name__ == "__main__":
 
     df_train, ALL_USERS, ALL_ITEMS = get_train_data_ncf()
     trainer = TrainerNCF(df_train, all_users=ALL_USERS, all_items=ALL_ITEMS)
-    trainer.fit(max_epochs=1)
+    trainer.fit(max_epochs=NCF_EPOCHES)
