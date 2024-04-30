@@ -1,8 +1,5 @@
 from abc import ABC
 
-import implicit
-import numpy as np
-import pandas as pd
 from implicit.cpu.als import AlternatingLeastSquares
 from pandas import DataFrame
 from scipy.sparse import coo_matrix

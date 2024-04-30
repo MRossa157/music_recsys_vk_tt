@@ -4,7 +4,6 @@ import os
 import implicit
 import numpy as np
 import pandas as pd
-from pandas import DataFrame
 from scipy.sparse import coo_matrix
 
 BEST_PARAMS = {'factors': 40, 'iterations': 3, 'regularization': 0.01}
