@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from scipy.sparse import coo_matrix
 
+from app.src.utils import get_users_and_items
+
 BEST_PARAMS = {'factors': 40, 'iterations': 3, 'regularization': 0.01}
 
 def train(coo_train, factors=200, iterations=15, regularization=0.01, show_progress=True):
@@ -25,8 +27,7 @@ if __name__ == "__main__":
 
     # мапинг msno и song_id на нормальные индексы
     logging.info("Добавляем колоки 'user_id' и 'item_id'")
-    ALL_USERS = df_train['msno'].unique().tolist()
-    ALL_ITEMS = df_train['song_id'].unique().tolist()
+    ALL_USERS, ALL_ITEMS = get_users_and_items()
 
     user_ids = dict(list(enumerate(ALL_USERS)))
     item_ids = dict(list(enumerate(ALL_ITEMS)))
@@ -39,6 +40,7 @@ if __name__ == "__main__":
 
     # Обучение
     logging.info('Подготавливаем данные для обучения')
+    ## Собираем csr матрицу для ALS
     row = df_train['user_id'].values
     col = df_train['item_id'].values
     data = np.ones(df_train.shape[0])
