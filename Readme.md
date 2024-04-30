@@ -5,6 +5,7 @@
 
 [Набор данных](https://www.kaggle.com/competitions/kkbox-music-recommendation-challenge/data)
 
+Код написан так, что вполне успешно обучает модели на CPU
 
 # Шаги по подготовке:
 0. Скопировать данные в app/dataset
