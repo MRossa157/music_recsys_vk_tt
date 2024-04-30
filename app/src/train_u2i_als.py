@@ -5,8 +5,7 @@ import implicit
 import numpy as np
 import pandas as pd
 from scipy.sparse import coo_matrix
-
-from app.src.utils import get_users_and_items
+from utils import get_users_and_items
 
 BEST_PARAMS = {'factors': 40, 'iterations': 3, 'regularization': 0.01}
 
@@ -20,7 +19,7 @@ def train(coo_train, factors=200, iterations=15, regularization=0.01, show_progr
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    dataset_path = r"app\dataset"
+    dataset_path = r"dataset"
     # Считывание данных
     logging.info('Считываем данные')
     df_train = pd.read_csv(rf'{dataset_path}\train.csv')

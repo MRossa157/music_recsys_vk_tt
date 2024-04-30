@@ -33,7 +33,7 @@ def extract_all(archive_path):
 
 
 if __name__ == "__main__":
-    dataset_path = r"app\dataset"
+    dataset_path = r"dataset"
 
     zip_files = [f for f in os.listdir(dataset_path) if f.endswith('.zip') or f.endswith('.7z')]
     if len(zip_files) == 1:
