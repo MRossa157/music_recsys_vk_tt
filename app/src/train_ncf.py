@@ -1,12 +1,13 @@
 import logging
 from typing import List, Tuple
 
-import pandas as pd
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
+
+from app.src.utils import get_train_data_ncf
 
 
 class MusicTrainDataset(Dataset):
@@ -90,38 +91,17 @@ class NCF(pl.LightningModule):
 
 
 class TrainerNCF():
-    def __init__(self, dataset_folder_path: str) -> None:
-        logging.info('Загружаем данные о песнях и пользователях')
-        self.df_songs = pd.read_csv(f'{dataset_folder_path}\\songs.csv')
-        self.df_members = pd.read_csv(f'{dataset_folder_path}\\members.csv')
-
-        self.ALL_USERS = self.df_members['msno'].unique().tolist()
-        self.ALL_ITEMS = self.df_songs['song_id'].unique().tolist()
-
-        del self.df_songs, self.df_members
+    def __init__(self, df_train: DataFrame, all_users: list, all_items: list) -> None:
+        """
+        df_train (Pandas Dataframe) - Dataframe that you want to train the model on
+        all_users (List) - List of all user ids (msno)
+        all_items (List) - List of all song ids (song_id)
+        """
+        self.ALL_USERS = all_users
+        self.ALL_ITEMS = all_items
 
         logging.info('Предобрабатываем данные')
-        df_train = pd.read_csv(f'{dataset_folder_path}\\train.csv')
-        user_map = self.get_maps(self.ALL_USERS)
-        item_map = self.get_maps(self.ALL_ITEMS)
-        df_train = self.__prepare_data(df_train, user_map, item_map)
-        self.df_train = df_train[['user_id', 'item_id', 'target']]
-
-    def get_maps(self, data: List | Tuple):
-        data_ids = dict(list(enumerate(data)))
-        data_map = {u: uidx for uidx, u in data_ids.items()}
-        return data_map
-
-    def __prepare_data(self, df: DataFrame, user_map: dict, item_map: dict):
-        """
-        Added to Pandas Dataframe new columns 'user_id' and 'item_id' based on exists columns 'msno' and 'song_id'
-        """
-        df['user_id'] = df['msno'].map(user_map)
-        df['item_id'] = df['song_id'].map(item_map)
-
-        df.dropna(subset=['item_id'], inplace=True)
-        df['item_id'] = df['item_id'].astype(int)
-        return df
+        self.df_train = self.__prepare_data(df_train)
 
     def fit(self, max_epochs:int = 5):
         logging.info('Запустили обучение')
@@ -134,9 +114,30 @@ class TrainerNCF():
         logging.info('Сохраняем веса модели (чекпоинт) в папку app/src/weights')
         trainer.save_checkpoint(f"app/src/weights/NCF_result_epochs={max_epochs}.ckpt")
 
+    def __get_maps(self, data: List | Tuple) -> dict:
+        data_ids = dict(list(enumerate(data)))
+        data_map = {u: uidx for uidx, u in data_ids.items()}
+        return data_map
+
+    def __prepare_data(self, df: DataFrame) -> DataFrame:
+        """
+        Remakes from the 'msno', 'song_id', 'target' dataframe a dataframe with columns ['user_id', 'item_id', 'target']
+        """
+        user_map = self.__get_maps(self.ALL_USERS)
+        item_map = self.__get_maps(self.ALL_ITEMS)
+
+        df['user_id'] = df['msno'].map(user_map)
+        df['item_id'] = df['song_id'].map(item_map)
+
+        df.dropna(subset=['item_id'], inplace=True)
+        df['item_id'] = df['item_id'].astype(int)
+        df = df[['user_id', 'item_id', 'target']]
+        return df
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    trainer = TrainerNCF(r"app/dataset")
+    df_train, ALL_USERS, ALL_ITEMS = get_train_data_ncf()
+    trainer = TrainerNCF(df_train, all_users=ALL_USERS, all_items=ALL_ITEMS)
     trainer.fit(max_epochs=1)
