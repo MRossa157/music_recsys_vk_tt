@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import List, Tuple
 
 import torch
 from implicit.cpu.als import AlternatingLeastSquares
@@ -27,11 +28,6 @@ class BaseRecommender(ABC):
 
     def songid_to_item_id(self, songid):
         return self.item_map.get(songid, None)
-
-
-    def __print_if_debug(self, data):
-        if self.debug_mode:
-            print(data)
 
 class ALSRecommender(BaseRecommender):
     def __init__(self, model_path: str, user_ids: list, item_ids: list) -> None:
@@ -114,23 +110,29 @@ class ALSRecommender(BaseRecommender):
 
 
 class NCFRecommender(BaseRecommender):
-    def __init__(self, model_path: str, user_ids: list, item_ids: list, ratings: DataFrame) -> None:
+    def __init__(self, model_path: str, user_ids: list, item_ids: list, df_train: DataFrame) -> None:
         """
         model_path (str) = Path to .ckpt checkpoint file from PyTorch Lightning
+
         user_ids (List[str|int]) = List of all users
+
         item_ids (List[str|int]) = List of all items
-        ratings (Pandas Dataframe) = Dataframe with collumns: 'user_id', 'item_id', 'target'
+
+        df_train (Pandas Dataframe) = Train Dataframe
         """
         super().__init__(model_path, user_ids, item_ids)
         if not model_path.endswith(".ckpt"):
             raise ValueError("Путь к модели должен содержать файл с расширением .ckpt")
 
+        ratings = self.__prepare_data(df_train)
+
         self.model = NCF.load_from_checkpoint(model_path, num_users=len(self.user_ids), num_items=len(self.item_ids), ratings=ratings)
 
     def get_recommendation(self, user_id: int, items: list) -> str:
         """
-        user_id (int) = User ID
-        items_targets List(int) = List of item_ids
+        user_id (int) = User ID (not 'msno' from DataFrame)
+
+        items_targets List(int) = List of item_ids (not 'song_id' from DataFrame)
 
         Returns
         Tuple of (itemids, scores) arrays. For a single user these array will be 1-dimensional with N items.
@@ -141,4 +143,28 @@ class NCFRecommender(BaseRecommender):
         with torch.no_grad():
             predictions = self.model(user_tensor, items_tensor).flatten().numpy()
 
-        return tuple(items_tensor.flatten().numpy(), predictions)
+        return items_tensor.flatten().numpy(), predictions
+
+    def get_user_song_ids(self, msno: str, df: DataFrame):
+        items = df[df['msno'] == msno]['song_id'].tolist()
+        return items
+
+    def __get_maps(self, data: List | Tuple) -> dict:
+        data_ids = dict(list(enumerate(data)))
+        data_map = {u: uidx for uidx, u in data_ids.items()}
+        return data_map
+
+    def __prepare_data(self, df: DataFrame) -> DataFrame:
+        """
+        Remakes from the 'msno', 'song_id', 'target' dataframe a dataframe with columns ['user_id', 'item_id', 'target']
+        """
+        user_map = self.__get_maps(self.user_ids)
+        item_map = self.__get_maps(self.item_ids)
+
+        df['user_id'] = df['msno'].map(user_map)
+        df['item_id'] = df['song_id'].map(item_map)
+
+        df.dropna(subset=['item_id'], inplace=True)
+        df['item_id'] = df['item_id'].astype(int)
+        df = df[['user_id', 'item_id', 'target']]
+        return df
