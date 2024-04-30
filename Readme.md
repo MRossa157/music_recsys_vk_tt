@@ -1,7 +1,7 @@
 # Рекомендательная система релевантных треков для пользователей
 Репозиторий содержит:
-- user-to-item модель (NDCG@20 0.110 на 30/04/2024)
-- пока всё...
+- user-to-item ALS модель (NDCG@20 = 0.110 на 30/04/2024)
+- Neural Collaborative Filtering модель (NDCG@20 = 0.471 на 30/04/2024)
 
 [Набор данных](https://www.kaggle.com/competitions/kkbox-music-recommendation-challenge/data)
 
@@ -18,16 +18,16 @@ cd app/src
 
 ```python3 exctract_zip.py```
 
-2. Обучить user-2-item модель:
+2. Обучить user-2-item ALS модель:
 
 ```python3 train_u2i_als.py```
 
-3. Запустить main.py и проверить выдачу рекоменадий:
+3. Запустить main.py и проверить выдачу ALS рекоменадий:
 
 ```python3 main.py```
 
 
 # В планах:
-- [ ] Добавить оценку метрики NDCG для NCF
+- [X] Добавить оценку метрики NDCG для NCF
 - [ ] Добавить NCFRecommender
 - [ ] Сделать makefile
