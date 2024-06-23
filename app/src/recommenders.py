@@ -121,7 +121,7 @@ class NCFRecommender(BaseRecommender):
 
         self.model = NCF.load_from_checkpoint(model_path, num_users=len(self.user_ids), num_items=len(self.item_ids), ratings=ratings)
 
-    def get_recommendation(self, user_id: int, items: list) -> str:
+    def get_recommendation(self, user_id: int, items: list) -> Tuple:
         """
         user_id (int) = User ID (not 'msno' from DataFrame)
 
